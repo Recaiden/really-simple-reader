@@ -77,12 +77,12 @@ for listing in listFeeds:
     
     # output all of the new posts
 
-    count = 1
-    blockcount = 1
+    #count = 1
+    #blockcount = 1
+    print("\n" + time.strftime("%a, %b %d %I:%M %p") + '  ((( ' + feed_name + ' )))')
+    print("-----------------------------------------\n")
     for title in posts_to_print:
-        if count % 5 == 1:
-            print("\n" + time.strftime("%a, %b %d %I:%M %p") + '  ((( ' + feed_name + ' - ' + str(blockcount) + ' )))')
-            print("-----------------------------------------\n")
-            blockcount += 1
-        print(title + "\n")
-        count += 1
+        #if count % 5 == 1:
+            #blockcount += 1
+        print(title) # already appends a newline
+        #count += 1
