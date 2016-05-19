@@ -3,6 +3,9 @@
 import time
 import sys
 from subprocess import check_output
+import webbrowser
+
+NEW_TAB_FLAG = 2
 
 import feedparser
 
@@ -15,6 +18,9 @@ DB_FEEDS = "rss/feeds.db"
 # function to get the current time
 timeCurrentMilli = lambda: int(round(time.time() * 1000))
 tsCurrent = timeCurrentMilli()
+
+def open_item(url):
+    webbrowser.open(url, NEW_TAB_FLAG)
 
 def postExists(title):
     with open(db, 'r') as database:
