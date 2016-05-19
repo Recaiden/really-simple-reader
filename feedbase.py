@@ -1,44 +1,38 @@
 #!/usr/bin/python
 
-import feedparser
 import time
-from subprocess import check_output
 import sys
+from subprocess import check_output
 
-#feed_name = 'TRIBUNE'
-#url = 'http://chicagotribune.feedsportal.com/c/34253/f/622872/index.rss'
+import feedparser
 
-db = "feeds.db"
-#'/var/www/radio/data/feeds.db'
-limit = 12 * 3600 * 1000 # 12 hours, in milliseconds
+db = "global that should be refactored"
+limit = 12 * 60 * 60 * 1000 # 12 hours, in milliseconds
 #limit = 1000
-
 
 DB_FEEDS = "rss/feeds.db"
 
-
 # function to get the current time
-current_time_millis = lambda: int(round(time.time() * 1000))
-current_timestamp = current_time_millis()
+timeCurrentMilli = lambda: int(round(time.time() * 1000))
+tsCurrent = timeCurrentMilli()
 
-def post_is_in_db(title):
+def postExists(title):
     with open(db, 'r') as database:
         for line in database:
             if title in line:
                 return True
     return False
 
-# return true if the title is in the database with a timestamp > limit
-def post_is_in_db_with_old_timestamp(title):
+def postHasExpired(title):
     with open(db, 'r+') as database:
         for line in database:
             if title in line:
-                ts_as_string = line.split('|', 1)[1]
-                ts = long(ts_as_string)
-                if current_timestamp - ts > limit:
+                ts = long(line.split('|', 1)[1])
+                if tsCurrent - ts > limit:
                     return True
     return False
 
+# Gather up a list of feeds to poll
 listFeeds = []
 with open(DB_FEEDS, 'r+') as database:
     for feed in database:
@@ -46,43 +40,33 @@ with open(DB_FEEDS, 'r+') as database:
         url = feed.split("|")[1].strip()
         listFeeds.append((title,url))
             
-#
-# get the feed data from the url
-#
+# Loop through each subscribed feed.
 for listing in listFeeds:
     feed = feedparser.parse(listing[1])
     feed_name = listing[0]
     db = "rss/"+listing[0]+".db"
 
-    # figure out which posts to print
     posts_to_print = []
     posts_to_skip = []
 
     for post in feed.entries:
-        # if post is already in the database, skip it
         # TODO check the time
         title = post.title
-        if post_is_in_db_with_old_timestamp(title):
+        if postHasExpired(title):
             posts_to_skip.append(title)
         else:
             posts_to_print.append(title)
     
-    # add all the posts we're going to print to the database with the current timestamp
-    # (but only if they're not already in there)
+    # Add all new posts to the db.
     f = open(db, 'a+')
     for title in posts_to_print:
-        if not post_is_in_db(title):
-            f.write(title + "|" + str(current_timestamp) + "\n")
+        if not postExists(title):
+            f.write(title + "|" + str(tsCurrent) + "\n")
     f.close
     
     # output all of the new posts
 
-    #count = 1
-    #blockcount = 1
-    print("\n" + time.strftime("%a, %b %d %I:%M %p") + '  ((( ' + feed_name + ' )))')
+    print("\n" + time.strftime("%a, %b %d %I:%M %p") + ' - ' + feed_name)
     print("-----------------------------------------\n")
     for title in posts_to_print:
-        #if count % 5 == 1:
-            #blockcount += 1
         print(title) # already appends a newline
-        #count += 1
